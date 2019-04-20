@@ -12,6 +12,8 @@
 #include <netdb.h>
 #include <sys/types.h>
 
+#include "irc.h"
+
 #define IP "192.168.8.118"
 #define CHANNEL "#net"
 #define PORT 6667
@@ -35,6 +37,31 @@ int main(int argc, char **argv) {
     if(connect(sockfd, (struct sockaddr* )&serv_addr, sizeof(serv_addr)) < 0) {
         perror("socket connection failed");
         exit(EXIT_FAILURE);
+    }
+
+    if(irc_login(sockfd, "MR BIG BOT") < 0) {
+        perror("irc login failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // This is IRC listener
+    char buffer[4096];
+    while(1) {
+        int recv_length = recv(sockfd, &buffer, sizeof(buffer), 0);
+        printf(">>> %s\n", buffer);
+        // recv_length take one to stop duplication of \r\n end line
+        for( int i = 0; i < recv_length-1; i++ ) {
+            switch (buffer[i]) {
+                // Reached end of message
+                case '\r':
+                case '\n':
+                {
+                    buffer[i] = '\0';
+                    //parse_action(sockfd, &buffer, recv_length);
+                    break;
+                }
+            }
+        }
     }
 
     return 0;
