@@ -13,6 +13,7 @@
 #include <sys/types.h>
 
 #include "irc.h"
+#include "parser.h"
 
 #define IP "192.168.8.118"
 #define CHANNEL "#net"
@@ -48,7 +49,6 @@ int main(int argc, char **argv) {
     char buffer[4096];
     while(1) {
         int recv_length = recv(sockfd, &buffer, sizeof(buffer), 0);
-        printf(">>> %s\n", buffer);
         // recv_length take one to stop duplication of \r\n end line
         for( int i = 0; i < recv_length-1; i++ ) {
             switch (buffer[i]) {
@@ -57,7 +57,8 @@ int main(int argc, char **argv) {
                 case '\n':
                 {
                     buffer[i] = '\0';
-                    //parse_action(sockfd, &buffer, recv_length);
+                    if(parse_line(sockfd, &buffer, recv_length) < 0)
+                        exit(EXIT_FAILURE);
                     break;
                 }
             }
